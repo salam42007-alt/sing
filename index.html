@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BEAT·SYNC — rhythm game engine</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- start screen (visible initially) -->
+        <div id="start-screen" class="screen active">
+            <h1 class="glitch" data-text="BEAT·SYNC">BEAT·SYNC</h1>
+            <p class="sub">upload any track · hit space on the dots</p>
+            <div class="upload-area" id="upload-area">
+                <input type="file" id="audio-file" accept="audio/*" hidden>
+                <button class="glow-btn" id="select-file-btn">🎵 choose song</button>
+                <span id="file-name" class="file-name">no file selected</span>
+            </div>
+            <button class="glow-btn" id="start-game-btn" disabled>▶ start</button>
+            <div class="instructions">
+                <kbd>space</kbd> <span>— hit the beats</span>
+            </div>
+        </div>
+
+        <!-- game screen (hidden by default) -->
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <div class="stats">
+                    <div class="stat-item">🎯 <span id="score">0</span></div>
+                    <div class="stat-item">🎼 <span id="accuracy">100%</span></div>
+                    <div class="stat-item">⚡ <span id="combo">0</span></div>
+                    <div class="stat-item">💔 <span id="miss">0</span></div>
+                </div>
+                <div class="hit-feedback" id="hit-feedback"></div>
+            </div>
+
+            <!-- playfield: notes fall from top to bottom -->
+            <div class="playfield" id="playfield">
+                <!-- judgement line (invisible, where hit detection happens) -->
+                <div class="judgement-line"></div>
+            </div>
+
+            <!-- progress & control -->
+            <div class="game-footer">
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+                </div>
+                <button class="small-btn" id="back-to-menu">↺ menu</button>
+            </div>
+        </div>
+
+        <!-- result screen (hidden by default) -->
+        <div id="result-screen" class="screen">
+            <h2>results</h2>
+            <div class="result-stats">
+                <p>final score <span id="final-score">0</span></p>
+                <p>accuracy <span id="final-accuracy">100%</span></p>
+                <p>max combo <span id="final-combo">0</span></p>
+                <p>misses <span id="final-miss">0</span></p>
+            </div>
+            <button class="glow-btn" id="play-again">play again</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
