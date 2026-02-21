@@ -1,0 +1,277 @@
+/* style.css - dark theme, glow effects, modern rhythm game UI */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% 30%, #1a1e2f, #0b0d18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+}
+
+#game-container {
+    width: 800px;
+    max-width: 95vw;
+    background: rgba(10, 12, 22, 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 70, 180, 0.3);
+    border-radius: 2.5rem;
+    padding: 2rem 1.5rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(180, 0, 255, 0.3);
+}
+
+/* screens */
+.screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.25s ease;
+}
+.screen.active {
+    display: flex;
+}
+
+/* --- start screen --- */
+h1.glitch {
+    font-size: 4rem;
+    font-weight: 800;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: #fff0f0;
+    text-shadow: 0 0 10px #ff66c0, 0 0 20px #b700ff, 0 0 40px #7700ff;
+    position: relative;
+    margin-bottom: 0.5rem;
+}
+.glitch::before {
+    content: attr(data-text);
+    position: absolute;
+    left: -2px;
+    top: 2px;
+    width: 100%;
+    color: #00ffff;
+    opacity: 0.6;
+    clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+}
+.sub {
+    color: #aaaac0;
+    margin-bottom: 2.5rem;
+    font-size: 1.1rem;
+}
+
+.upload-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    margin: 1rem 0;
+}
+.glow-btn {
+    background: transparent;
+    border: 2px solid #ff44cc;
+    color: #ffddff;
+    padding: 0.9rem 2.2rem;
+    border-radius: 60px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 0 15px #ff44cc80;
+    transition: 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.glow-btn:hover:not(:disabled) {
+    background: #ff44cc20;
+    box-shadow: 0 0 30px #ff44cc, 0 0 60px #aa44ff;
+    border-color: #ff88ee;
+    transform: scale(1.02);
+}
+.glow-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: #6b4e6b;
+}
+.file-name {
+    color: #c0b0e0;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+kbd {
+    background: #2a2536;
+    border-radius: 6px;
+    padding: 0.2rem 0.9rem;
+    font-size: 1.2rem;
+    border: 1px solid #ffa0fa;
+    color: white;
+    box-shadow: 0 0 8px cyan;
+}
+.instructions {
+    margin-top: 2.5rem;
+    color: #acb4ff;
+}
+
+/* --- game screen --- */
+.game-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.stats {
+    display: flex;
+    gap: 2rem;
+    color: #d0d5ff;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+.stat-item {
+    background: #13172b;
+    padding: 0.5rem 1.2rem;
+    border-radius: 40px;
+    border: 1px solid #ff80d0;
+    box-shadow: 0 0 10px #ff22aa40;
+}
+.hit-feedback {
+    font-size: 2rem;
+    font-weight: 800;
+    min-width: 140px;
+    text-align: right;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+.hit-feedback.perfect {
+    color: #6effa0;
+    text-shadow: 0 0 20px #00ff88;
+}
+.hit-feedback.good {
+    color: #ffd966;
+    text-shadow: 0 0 15px #ffb700;
+}
+.hit-feedback.miss {
+    color: #ff6b8b;
+    text-shadow: 0 0 15px #ff2a5c;
+}
+
+.playfield {
+    position: relative;
+    width: 100%;
+    height: 380px;
+    background: #080c1a;
+    border-radius: 40px;
+    border: 2px solid #441166;
+    box-shadow: inset 0 0 40px #000000, 0 0 30px #9f4dfb;
+    overflow: hidden;
+    margin: 0.8rem 0;
+}
+.judgement-line {
+    position: absolute;
+    bottom: 70px;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #f0f, #c0f, #f0f, transparent);
+    box-shadow: 0 0 25px #ff88ff, 0 0 45px magenta;
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* falling notes */
+.note {
+    position: absolute;
+    width: 52px;
+    height: 52px;
+    background: rgba(255, 200, 255, 0.9);
+    border-radius: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 35px #ffaaff, 0 0 70px #bf7fff;
+    border: 2px solid white;
+    transition: box-shadow 0.1s;
+    z-index: 10;
+    pointer-events: none; /* detection by timer */
+}
+.note.good-hit {
+    box-shadow: 0 0 80px #88ffaa, 0 0 120px #2eff7e;
+    background: #ddffdd;
+    border-color: #00ff88;
+}
+.note.missed {
+    box-shadow: 0 0 40px #ff5555;
+    background: #aa4444;
+    opacity: 0.6;
+}
+.note.perfect-hit {
+    box-shadow: 0 0 90px cyan, 0 0 140px #00b8ff;
+    background: #b5ffff;
+    border-color: cyan;
+}
+
+.game-footer {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+.progress-container {
+    flex: 1;
+    height: 10px;
+    background: #222;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid #f6f;
+}
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ff88c0, #b47eff);
+    box-shadow: 0 0 15px #ff7bfb;
+}
+.small-btn {
+    background: #21203b;
+    border: 1px solid #a06eff;
+    color: white;
+    padding: 0.3rem 1.2rem;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+.small-btn:hover {
+    background: #3d2e66;
+}
+
+/* result screen */
+#result-screen h2 {
+    font-size: 3.5rem;
+    color: #dedeff;
+    text-shadow: 0 0 20px violet;
+    margin-bottom: 1rem;
+}
+.result-stats p {
+    font-size: 2rem;
+    color: #dadbff;
+    margin: 0.5rem;
+}
+.result-stats span {
+    font-weight: 700;
+    color: #f9b3ff;
+    text-shadow: 0 0 12px magenta;
+    margin-left: 1.5rem;
+}
+
+/* responsiveness */
+@media (max-width: 600px) {
+    .stats { gap: 0.5rem; font-size: 1rem; }
+    .playfield { height: 280px; }
+    h1.glitch { font-size: 2.8rem; }
+}
