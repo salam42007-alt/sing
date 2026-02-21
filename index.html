@@ -4,14 +4,293 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BEAT·SYNC — rhythm game engine</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 30%, #1a1e2f, #0b0d18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        #game-container {
+            width: 800px;
+            max-width: 95vw;
+            background: rgba(10, 12, 22, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 70, 180, 0.3);
+            border-radius: 2.5rem;
+            padding: 2rem 1.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(180, 0, 255, 0.3);
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.25s ease;
+        }
+        .screen.active {
+            display: flex;
+        }
+
+        /* start screen */
+        h1.glitch {
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: #fff0f0;
+            text-shadow: 0 0 10px #ff66c0, 0 0 20px #b700ff, 0 0 40px #7700ff;
+            position: relative;
+            margin-bottom: 0.5rem;
+        }
+        .glitch::before {
+            content: attr(data-text);
+            position: absolute;
+            left: -2px;
+            top: 2px;
+            width: 100%;
+            color: #00ffff;
+            opacity: 0.6;
+            clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+        }
+        .sub {
+            color: #aaaac0;
+            margin-bottom: 2.5rem;
+            font-size: 1.1rem;
+        }
+
+        .upload-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+        .glow-btn {
+            background: transparent;
+            border: 2px solid #ff44cc;
+            color: #ffddff;
+            padding: 0.9rem 2.2rem;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 0 15px #ff44cc80;
+            transition: 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .glow-btn:hover:not(:disabled) {
+            background: #ff44cc20;
+            box-shadow: 0 0 30px #ff44cc, 0 0 60px #aa44ff;
+            border-color: #ff88ee;
+            transform: scale(1.02);
+        }
+        .glow-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: #6b4e6b;
+        }
+        .file-name {
+            color: #c0b0e0;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        kbd {
+            background: #2a2536;
+            border-radius: 6px;
+            padding: 0.2rem 0.9rem;
+            font-size: 1.2rem;
+            border: 1px solid #ffa0fa;
+            color: white;
+            box-shadow: 0 0 8px cyan;
+        }
+        .instructions {
+            margin-top: 2.5rem;
+            color: #acb4ff;
+        }
+
+        /* game screen */
+        .game-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .stats {
+            display: flex;
+            gap: 2rem;
+            color: #d0d5ff;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        .stat-item {
+            background: #13172b;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            border: 1px solid #ff80d0;
+            box-shadow: 0 0 10px #ff22aa40;
+        }
+        .hit-feedback {
+            font-size: 2rem;
+            font-weight: 800;
+            min-width: 140px;
+            text-align: right;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .hit-feedback.perfect {
+            color: #6effa0;
+            text-shadow: 0 0 20px #00ff88;
+        }
+        .hit-feedback.good {
+            color: #ffd966;
+            text-shadow: 0 0 15px #ffb700;
+        }
+        .hit-feedback.miss {
+            color: #ff6b8b;
+            text-shadow: 0 0 15px #ff2a5c;
+        }
+
+        .playfield {
+            position: relative;
+            width: 100%;
+            height: 380px;
+            background: #080c1a;
+            border-radius: 40px;
+            border: 2px solid #441166;
+            box-shadow: inset 0 0 40px #000000, 0 0 30px #9f4dfb;
+            overflow: hidden;
+            margin: 0.8rem 0;
+            cursor: pointer;
+        }
+        .judgement-line {
+            position: absolute;
+            bottom: 70px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #f0f, #c0f, #f0f, transparent);
+            box-shadow: 0 0 25px #ff88ff, 0 0 45px magenta;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .note {
+            position: absolute;
+            width: 52px;
+            height: 52px;
+            background: rgba(255, 200, 255, 0.9);
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 35px #ffaaff, 0 0 70px #bf7fff;
+            border: 2px solid white;
+            transition: all 0.1s ease;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .note.perfect-hit {
+            box-shadow: 0 0 80px #88ffaa, 0 0 120px #2eff7e;
+            background: #ddffdd;
+            border-color: #00ff88;
+            transform: translateX(-50%) scale(1.3);
+        }
+        .note.good-hit {
+            box-shadow: 0 0 60px #ffd966, 0 0 100px #ffaa00;
+            background: #fff2c0;
+            border-color: #ffb700;
+            transform: translateX(-50%) scale(1.2);
+        }
+        .note.missed {
+            box-shadow: 0 0 40px #ff5555;
+            background: #aa4444;
+            opacity: 0.6;
+            transform: translateX(-50%) scale(0.8);
+        }
+
+        .game-footer {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .progress-container {
+            flex: 1;
+            height: 10px;
+            background: #222;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #f6f;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff88c0, #b47eff);
+            box-shadow: 0 0 15px #ff7bfb;
+        }
+        .small-btn {
+            background: #21203b;
+            border: 1px solid #a06eff;
+            color: white;
+            padding: 0.3rem 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .small-btn:hover {
+            background: #3d2e66;
+        }
+
+        /* result screen */
+        #result-screen h2 {
+            font-size: 3.5rem;
+            color: #dedeff;
+            text-shadow: 0 0 20px violet;
+            margin-bottom: 1rem;
+        }
+        .result-stats p {
+            font-size: 2rem;
+            color: #dadbff;
+            margin: 0.5rem;
+        }
+        .result-stats span {
+            font-weight: 700;
+            color: #f9b3ff;
+            text-shadow: 0 0 12px magenta;
+            margin-left: 1.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .stats { gap: 0.5rem; font-size: 1rem; }
+            .playfield { height: 280px; }
+            h1.glitch { font-size: 2.8rem; }
+        }
+    </style>
 </head>
 <body>
     <div id="game-container">
-        <!-- start screen (visible initially) -->
+        <!-- start screen -->
         <div id="start-screen" class="screen active">
             <h1 class="glitch" data-text="BEAT·SYNC">BEAT·SYNC</h1>
-            <p class="sub">upload any track · hit space on the dots</p>
+            <p class="sub">upload any track · click on the beats</p>
             <div class="upload-area" id="upload-area">
                 <input type="file" id="audio-file" accept="audio/*" hidden>
                 <button class="glow-btn" id="select-file-btn">🎵 choose song</button>
@@ -19,11 +298,11 @@
             </div>
             <button class="glow-btn" id="start-game-btn" disabled>▶ start</button>
             <div class="instructions">
-                <kbd>space</kbd> <span>— hit the beats</span>
+                <kbd>🖱️ left click</kbd> <span>— hit the beats</span>
             </div>
         </div>
 
-        <!-- game screen (hidden by default) -->
+        <!-- game screen -->
         <div id="game-screen" class="screen">
             <div class="game-header">
                 <div class="stats">
@@ -35,13 +314,10 @@
                 <div class="hit-feedback" id="hit-feedback"></div>
             </div>
 
-            <!-- playfield: notes fall from top to bottom -->
             <div class="playfield" id="playfield">
-                <!-- judgement line (invisible, where hit detection happens) -->
                 <div class="judgement-line"></div>
             </div>
 
-            <!-- progress & control -->
             <div class="game-footer">
                 <div class="progress-container">
                     <div class="progress-bar" id="progress-bar" style="width:0%"></div>
@@ -50,7 +326,7 @@
             </div>
         </div>
 
-        <!-- result screen (hidden by default) -->
+        <!-- result screen -->
         <div id="result-screen" class="screen">
             <h2>results</h2>
             <div class="result-stats">
@@ -63,6 +339,396 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        (function() {
+            // DOM elements
+            const startScreen = document.getElementById('start-screen');
+            const gameScreen = document.getElementById('game-screen');
+            const resultScreen = document.getElementById('result-screen');
+            const selectFileBtn = document.getElementById('select-file-btn');
+            const audioFileInput = document.getElementById('audio-file');
+            const fileNameSpan = document.getElementById('file-name');
+            const startGameBtn = document.getElementById('start-game-btn');
+            const backToMenuBtn = document.getElementById('back-to-menu');
+            const playAgainBtn = document.getElementById('play-again');
+            const playfield = document.getElementById('playfield');
+            const scoreSpan = document.getElementById('score');
+            const accuracySpan = document.getElementById('accuracy');
+            const comboSpan = document.getElementById('combo');
+            const missSpan = document.getElementById('miss');
+            const hitFeedback = document.getElementById('hit-feedback');
+            const progressBar = document.getElementById('progress-bar');
+
+            const finalScore = document.getElementById('final-score');
+            const finalAccuracy = document.getElementById('final-accuracy');
+            const finalCombo = document.getElementById('final-combo');
+            const finalMiss = document.getElementById('final-miss');
+
+            // Game state
+            let audioContext = null;
+            let audioBuffer = null;
+            let audioSource = null;
+            let startTime = 0;
+            let animationFrame = null;
+            let beats = [];
+            let notes = [];
+            let gameActive = false;
+            let nextNoteId = 0;
+
+            // Scoring
+            let score = 0;
+            let perfectCount = 0;
+            let goodCount = 0;
+            let missCount = 0;
+            let combo = 0;
+            let maxCombo = 0;
+
+            const PERFECT_WINDOW = 0.07; // 70ms
+            const GOOD_WINDOW = 0.15; // 150ms
+
+            // Beat detection function
+            async function detectBeats(file) {
+                return new Promise(async (resolve) => {
+                    const arrayBuffer = await file.arrayBuffer();
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                    
+                    // Get audio data for analysis
+                    const channelData = audioBuffer.getChannelData(0);
+                    const sampleRate = audioBuffer.sampleRate;
+                    
+                    // Parameters for beat detection
+                    const windowSize = 2048;
+                    const hopSize = 512;
+                    const energyHistory = [];
+                    const historyLength = 43; // ~1 second at 44.1kHz with hopSize 512
+                    
+                    const detectedBeats = [];
+                    
+                    // Calculate energy for each window
+                    for (let i = 0; i < channelData.length - windowSize; i += hopSize) {
+                        // Calculate RMS energy
+                        let sum = 0;
+                        for (let j = 0; j < windowSize; j++) {
+                            sum += channelData[i + j] * channelData[i + j];
+                        }
+                        const energy = Math.sqrt(sum / windowSize);
+                        
+                        // Keep history
+                        energyHistory.push(energy);
+                        if (energyHistory.length > historyLength) {
+                            energyHistory.shift();
+                        }
+                        
+                        // Calculate average energy
+                        if (energyHistory.length === historyLength) {
+                            const avgEnergy = energyHistory.reduce((a, b) => a + b, 0) / historyLength;
+                            
+                            // Beat detected if energy is significantly higher than average
+                            const threshold = 1.5; // Energy multiplier for beat detection
+                            if (energy > avgEnergy * threshold && energy > 0.01) {
+                                const time = i / sampleRate;
+                                // Avoid duplicate beats too close together
+                                if (detectedBeats.length === 0 || time - detectedBeats[detectedBeats.length - 1] > 0.3) {
+                                    detectedBeats.push(time);
+                                }
+                            }
+                        }
+                    }
+                    
+                    console.log(`Detected ${detectedBeats.length} beats`);
+                    resolve(detectedBeats);
+                });
+            }
+
+            // Create notes from beats
+            function createNotesFromBeats(beatTimes) {
+                notes = [];
+                playfield.innerHTML = '<div class="judgement-line"></div>';
+                
+                beatTimes.forEach((time, index) => {
+                    const note = document.createElement('div');
+                    note.className = 'note';
+                    note.id = `note-${nextNoteId++}`;
+                    note.style.top = '-60px';
+                    note.dataset.hitTime = time;
+                    note.dataset.judged = 'false';
+                    playfield.appendChild(note);
+                    
+                    notes.push({
+                        element: note,
+                        hitTime: time,
+                        judged: false
+                    });
+                });
+            }
+
+            // Update stats UI
+            function updateStats() {
+                scoreSpan.textContent = score;
+                const total = perfectCount + goodCount + missCount;
+                if (total === 0) {
+                    accuracySpan.textContent = '100%';
+                } else {
+                    const acc = ((perfectCount * 100 + goodCount * 70) / (total * 100) * 100).toFixed(1);
+                    accuracySpan.textContent = acc + '%';
+                }
+                comboSpan.textContent = combo;
+                missSpan.textContent = missCount;
+            }
+
+            // Reset stats
+            function resetStats() {
+                score = 0;
+                perfectCount = 0;
+                goodCount = 0;
+                missCount = 0;
+                combo = 0;
+                maxCombo = 0;
+                updateStats();
+            }
+
+            // Game loop
+            function gameLoop() {
+                if (!gameActive) return;
+                
+                const currentTime = audioContext.currentTime - startTime;
+                
+                // Update progress
+                if (audioBuffer) {
+                    const progress = (currentTime / audioBuffer.duration) * 100;
+                    progressBar.style.width = Math.min(progress, 100) + '%';
+                }
+                
+                // Check if song ended
+                if (audioBuffer && currentTime > audioBuffer.duration + 1) {
+                    endGame();
+                    return;
+                }
+                
+                // Update note positions
+                const playfieldHeight = playfield.clientHeight;
+                const judgementLineY = playfieldHeight - 70; // 70px from bottom
+                const travelTime = 2.0; // seconds from top to judgement line
+                
+                notes.forEach(note => {
+                    if (note.judged) return;
+                    
+                    const timeToHit = note.hitTime - currentTime;
+                    
+                    // Calculate Y position
+                    const progress = 1 - (timeToHit / travelTime);
+                    const yPos = (progress * (playfieldHeight + 60)) - 60;
+                    
+                    // Update position
+                    note.element.style.top = Math.min(playfieldHeight + 60, Math.max(-60, yPos)) + 'px';
+                    
+                    // Check for miss (passed judgement line without being hit)
+                    if (!note.judged && yPos > judgementLineY + 30 && timeToHit < -0.1) {
+                        note.judged = true;
+                        note.element.classList.add('missed');
+                        combo = 0;
+                        missCount++;
+                        hitFeedback.textContent = 'miss';
+                        hitFeedback.className = 'hit-feedback miss';
+                        
+                        // Remove after animation
+                        setTimeout(() => {
+                            if (note.element.parentNode) {
+                                note.element.remove();
+                            }
+                        }, 200);
+                        
+                        notes = notes.filter(n => n !== note);
+                        updateStats();
+                    }
+                });
+                
+                animationFrame = requestAnimationFrame(gameLoop);
+            }
+
+            // Handle click on playfield
+            function handlePlayfieldClick(e) {
+                if (!gameActive || !audioContext) return;
+                
+                e.preventDefault();
+                const currentTime = audioContext.currentTime - startTime;
+                
+                // Find the closest note to current time
+                let closestNote = null;
+                let closestDiff = Infinity;
+                
+                notes.forEach(note => {
+                    if (note.judged) return;
+                    const diff = Math.abs(currentTime - note.hitTime);
+                    if (diff < closestDiff && diff <= GOOD_WINDOW) {
+                        closestDiff = diff;
+                        closestNote = note;
+                    }
+                });
+                
+                if (closestNote) {
+                    closestNote.judged = true;
+                    
+                    if (closestDiff <= PERFECT_WINDOW) {
+                        // Perfect hit
+                        score += 300;
+                        perfectCount++;
+                        combo++;
+                        hitFeedback.textContent = 'perfect!';
+                        hitFeedback.className = 'hit-feedback perfect';
+                        closestNote.element.classList.add('perfect-hit');
+                    } else {
+                        // Good hit
+                        score += 150;
+                        goodCount++;
+                        combo++;
+                        hitFeedback.textContent = 'good';
+                        hitFeedback.className = 'hit-feedback good';
+                        closestNote.element.classList.add('good-hit');
+                    }
+                    
+                    // Update max combo
+                    if (combo > maxCombo) maxCombo = combo;
+                    
+                    // Remove note after animation
+                    setTimeout(() => {
+                        if (closestNote.element.parentNode) {
+                            closestNote.element.remove();
+                        }
+                    }, 200);
+                    
+                    notes = notes.filter(n => n !== closestNote);
+                    updateStats();
+                }
+            }
+
+            // Start game
+            async function startGame() {
+                const file = audioFileInput.files[0];
+                if (!file) return;
+                
+                try {
+                    startGameBtn.disabled = true;
+                    
+                    // Detect beats
+                    beats = await detectBeats(file);
+                    
+                    if (beats.length === 0) {
+                        // Fallback beats if detection fails
+                        const duration = audioBuffer.duration;
+                        for (let i = 0.5; i < duration; i += 0.6) {
+                            beats.push(i);
+                        }
+                    }
+                    
+                    // Create notes
+                    createNotesFromBeats(beats);
+                    resetStats();
+                    
+                    // Start audio
+                    if (audioContext.state === 'suspended') {
+                        await audioContext.resume();
+                    }
+                    
+                    audioSource = audioContext.createBufferSource();
+                    audioSource.buffer = audioBuffer;
+                    audioSource.connect(audioContext.destination);
+                    
+                    startTime = audioContext.currentTime;
+                    audioSource.start();
+                    
+                    // Start game loop
+                    gameActive = true;
+                    gameLoop();
+                    
+                    // Switch screens
+                    startScreen.classList.remove('active');
+                    gameScreen.classList.add('active');
+                    
+                } catch (error) {
+                    console.error('Error starting game:', error);
+                    alert('Error starting game. Please try again.');
+                    startGameBtn.disabled = false;
+                }
+            }
+
+            // End game
+            function endGame() {
+                gameActive = false;
+                if (animationFrame) {
+                    cancelAnimationFrame(animationFrame);
+                }
+                if (audioSource) {
+                    audioSource.stop();
+                }
+                
+                // Show results
+                finalScore.textContent = score;
+                const total = perfectCount + goodCount + missCount;
+                const acc = total ? ((perfectCount * 100 + goodCount * 70) / (total * 100) * 100).toFixed(1) : '100';
+                finalAccuracy.textContent = acc + '%';
+                finalCombo.textContent = maxCombo;
+                finalMiss.textContent = missCount;
+                
+                gameScreen.classList.remove('active');
+                resultScreen.classList.add('active');
+                
+                // Clean up notes
+                notes.forEach(note => note.element.remove());
+                notes = [];
+            }
+
+            // Event listeners
+            selectFileBtn.addEventListener('click', () => {
+                audioFileInput.click();
+            });
+
+            audioFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    fileNameSpan.textContent = file.name;
+                    startGameBtn.disabled = false;
+                }
+            });
+
+            startGameBtn.addEventListener('click', startGame);
+
+            playfield.addEventListener('click', handlePlayfieldClick);
+
+            backToMenuBtn.addEventListener('click', () => {
+                gameActive = false;
+                if (animationFrame) {
+                    cancelAnimationFrame(animationFrame);
+                }
+                if (audioSource) {
+                    audioSource.stop();
+                }
+                
+                gameScreen.classList.remove('active');
+                startScreen.classList.add('active');
+                
+                // Clean up
+                notes.forEach(note => note.element.remove());
+                notes = [];
+                progressBar.style.width = '0%';
+            });
+
+            playAgainBtn.addEventListener('click', () => {
+                resultScreen.classList.remove('active');
+                startScreen.classList.add('active');
+                audioFileInput.value = '';
+                fileNameSpan.textContent = 'no file selected';
+                startGameBtn.disabled = true;
+            });
+
+            // Initialize audio context on user interaction
+            document.body.addEventListener('click', () => {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }, { once: true });
+        })();
+    </script>
 </body>
 </html>
